@@ -1,0 +1,117 @@
+#include <iostream>
+#include <ctime>
+#include <thread>
+#include <chrono>
+#include <string>
+
+using namespace std;
+
+// Function to add delay for animation effect
+void animateText(const string& text, int delay = 50) {
+    for (char c : text) {
+        cout << c << flush;
+        this_thread::sleep_for(chrono::milliseconds(delay));
+    }
+    cout << endl;
+}
+
+int main() {
+    const int GRID_SIZE = 52; // 26 uppercase + 26 lowercase letters
+    char grid[GRID_SIZE];
+
+    // Generate a seed key (e.g., current time for dynamic behavior)
+    int seed = static_cast<int>(time(0));
+
+    // Generate the substitution grid
+    srand(seed);
+    for (int i = 0; i < GRID_SIZE; ++i) {
+        if (i < 26)
+            grid[i] = 'A' + i;
+        else
+            grid[i] = 'a' + (i - 26);
+    }
+    for (int i = 0; i < GRID_SIZE; ++i) {
+        int j = rand() % GRID_SIZE;
+        swap(grid[i], grid[j]);
+    }
+
+    int tryAgain = 1;
+    while (tryAgain == 1) {
+        cout << "\033[2J\033[H"; // Clear screen manually
+        animateText("Welcome to the Encryption-Decryption Program!", 50);
+
+        int choice;
+        cout << "Choose an option:\n";
+        cout << "1. Encrypt a message\n";
+        cout << "2. Decrypt a message\n";
+        cout << "Enter your choice (1 or 2): ";
+        cin >> choice;
+        cin.ignore(); // Ignore newline character left in the buffer
+
+        if (choice == 1) {
+            char plaintext[256];
+            cout << "Enter the plaintext: ";
+            cin.getline(plaintext, 256);
+
+            char ciphertext[256];
+            int i = 0;
+            while (plaintext[i] != '\0') {
+                char c = plaintext[i];
+                if (c >= 'A' && c <= 'Z') {
+                    ciphertext[i] = grid[c - 'A'];
+                }
+                else if (c >= 'a' && c <= 'z') {
+                    ciphertext[i] = grid[c - 'a' + 26];
+                }
+                else {
+                    ciphertext[i] = c;
+                }
+                i++;
+            }
+            ciphertext[i] = '\0';
+
+            cout << "\nCiphertext: " << ciphertext << endl;
+        }
+        else if (choice == 2) {
+            char ciphertext[256];
+            cout << "Enter the ciphertext: ";
+            cin.getline(ciphertext, 256);
+
+            char plaintext[256];
+            int i = 0;
+            while (ciphertext[i] != '\0') {
+                char c = ciphertext[i];
+                if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
+                    for (int j = 0; j < GRID_SIZE; ++j) {
+                        if (grid[j] == c) {
+                            if (j < 26)
+                                plaintext[i] = 'A' + j;
+                            else
+                                plaintext[i] = 'a' + (j - 26);
+                            break;
+                        }
+                    }
+                }
+                else {
+                    plaintext[i] = c;
+                }
+                i++;
+            }
+            plaintext[i] = '\0';
+
+            cout << "\nDecrypted Text: " << plaintext << endl;
+        }
+        else {
+            cout << "Invalid choice. Please choose 1 or 2." << endl;
+            this_thread::sleep_for(chrono::seconds(2));
+            continue;
+        }
+
+        cout << "\nDo you want to try again? Press 1 for Yes or 2 to Exit: ";
+        cin >> tryAgain;
+        cin.ignore(); // Ignore newline character left in the buffer
+    }
+
+    animateText("Goodbye!", 50);
+    return 0;
+}
